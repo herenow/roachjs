@@ -1,0 +1,28 @@
+{
+  "name": "roachjs",
+  "version": "0.0.1",
+  "description": "Node.js driver for cockroachdb.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/herenow/roachjs"
+  },
+  "keywords": [
+    "cockroachdb",
+    "roachdb",
+    "roachjs",
+    "cockroach"
+  ],
+  "author": "herenow",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/herenow/roachjs/issues"
+  },
+  "homepage": "https://github.com/herenow/roachjs",
+  "dependencies": {
+    "mocha": "^2.0.1"
+  }
+}
