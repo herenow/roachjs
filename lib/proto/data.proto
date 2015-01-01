@@ -1,0 +1,241 @@
+// Copyright 2014 The Cockroach Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+// implied. See the License for the specific language governing
+// permissions and limitations under the License. See the AUTHORS file
+// for names of contributors.
+//
+// Author: Jiajia Han (hanjia18@gmail.com)
+// Author: Spencer Kimball (spencer.kimball@gmail.com)
+
+package proto;
+
+import "config.proto";
+import "code.google.com/p/gogoprotobuf/gogoproto/gogo.proto";
+
+// Timestamp represents a state of the hybrid logical clock.
+message Timestamp {
+  option (gogoproto.goproto_stringer) = false;
+
+  // Holds a wall time, typically a unix epoch time
+  // expressed in nanoseconds.
+  optional int64 wall_time = 1 [(gogoproto.nullable) = false];
+  // The logical component captures causality for events whose wall
+  // times are equal. It is effectively bounded by (maximum clock
+  // skew)/(minimal ns between events) and nearly impossible to
+  // overflow.
+  optional int32 logical = 2 [(gogoproto.nullable) = false];
+}
+
+// Value specifies the value at a key. Multiple values at the same key
+// are supported based on timestamp. Values support the union of two
+// basic types: a "bag o' bytes" generic byte slice and an incrementable
+// int64, for use with the Increment API call.
+message Value {
+  // Bytes is the byte slice value. If this field is set, the integer field
+  // should not be.
+  optional bytes bytes = 1;
+  // Integer is an integer value type. If this field is set, the bytes field
+  // should not be. Only Integer values may exist at a key when making the
+  // Increment API call.
+  optional int64 integer = 2;
+  // Checksum is a CRC-32-IEEE checksum of the key + value, in that order.
+  // If this is an integer value, then the value is interpreted as an 8
+  // byte, big-endian encoded value. This value is set by the client on
+  // writes to do end-to-end integrity verification. If the checksum is
+  // incorrect, the write operation will fail. If the client does not
+  // wish to use end-to-end checksumming, this value should be nil.
+  optional fixed32 checksum = 3;
+  // Timestamp of value.
+  optional Timestamp timestamp = 4;
+  // Tag is an optional string value which can be used to add additional
+  // metadata to this value. For example, Tag might provide information on how
+  // the bytes in the "bytes" field should be interpreted.
+  optional string tag = 5;
+}
+
+// MVCCValue differentiates between normal versioned values and
+// deletion tombstones.
+message MVCCValue {
+  // True to indicate a deletion tombstone. If false, value should not
+  // be nil.
+  optional bool deleted = 1 [(gogoproto.nullable) = false];
+  // The value. Nil if deleted is true; not nil otherwise.
+  optional Value value = 2;
+}
+
+// KeyValue is a pair of Key and Value for returned Key/Value pairs
+// from ScanRequest/ScanResponse. It embeds a Key and a Value.
+message KeyValue {
+  optional bytes key = 1 [(gogoproto.nullable) = false, (gogoproto.customtype) = "Key"];
+  optional Value value = 2 [(gogoproto.nullable) = false];
+}
+
+// RawKeyValue contains the raw bytes of the value for a key.
+message RawKeyValue {
+  optional bytes key = 1 [(gogoproto.nullable) = false, (gogoproto.customtype) = "EncodedKey"];
+  optional bytes value = 2 [(gogoproto.nullable) = false];
+}
+
+// A StoreIdent uniquely identifies a store in the cluster. The
+// StoreIdent is written to the underlying storage engine at a
+// store-reserved system key (KeyLocalIdent).
+message StoreIdent {
+  optional string cluster_id = 1 [(gogoproto.nullable) = false, (gogoproto.customname) = "ClusterID"];
+  optional int32 node_id = 2 [(gogoproto.nullable) = false, (gogoproto.customname) = "NodeID"];
+  optional int32 store_id = 3 [(gogoproto.nullable) = false, (gogoproto.customname) = "StoreID"];
+}
+
+// A SplitTrigger is run after a successful commit of an AdminSplit
+// command. It provides the updated range descriptor covering the
+// first half of the split and the new range descriptor covering the
+// second half. This information allows the final bookkeeping for
+// the split to be completed and the new range put into operation.
+message SplitTrigger {
+  optional RangeDescriptor updated_desc = 1 [(gogoproto.nullable) = false];
+  optional RangeDescriptor new_desc = 2 [(gogoproto.nullable) = false];
+}
+
+// IsolationType TODO(jiajia) Needs documentation.
+enum IsolationType {
+  option (gogoproto.goproto_enum_prefix) = false;
+  // SERIALIZABLE TODO(jiajia) Needs documentation.
+  SERIALIZABLE = 0;
+  // SNAPSHOT TODO(jiajia) Needs documentation.
+  SNAPSHOT = 1;
+}
+
+// TransactionStatus specifies possible states for a transaction.
+enum TransactionStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+  // PENDING is the default state for a new transaction. Transactions
+  // move from PENDING to one of COMMITTED or ABORTED. Mutations made
+  // as part of a PENDING transactions are recorded as "intents" in
+  // the underlying MVCC model.
+  PENDING = 0;
+  // COMMITTED is the state for a transaction which has been
+  // committed. Mutations made as part of a transaction which is moved
+  // into COMMITTED state become durable and visible to other
+  // transactions, moving from "intents" to permanent versioned
+  // values.
+  COMMITTED = 1;
+  // ABORTED is the state for a transaction which has been aborted.
+  // Mutations made as part of a transaction which is moved into
+  // ABORTED state are deleted and are never made visible to other
+  // transactions.
+  ABORTED = 2;
+}
+
+// NodeList keeps a growing set of NodeIDs as a sorted slice, with Add()
+// adding to the set and Contains() verifying membership.
+message NodeList {
+  repeated int32 nodes = 1 [packed=true];
+}
+
+// A Transaction is a unit of work performed on the database.
+// Cockroach transactions support two isolation levels: snapshot
+// isolation and serializable snapshot isolation. Each Cockroach
+// transaction is assigned a random priority. This priority will be
+// used to decide whether a transaction will be aborted during
+// contention.
+message Transaction {
+  option (gogoproto.goproto_stringer) = false;
+
+  optional string name = 1 [(gogoproto.nullable) = false];
+  // Key is the key which anchors the transaction. This is typically
+  // the first key read or written during the transaction and
+  // determines which range in the cluster will hold the transaction
+  // record.
+  optional bytes key = 2 [(gogoproto.nullable) = false, (gogoproto.customtype) = "Key"];
+  // ID is a unique UUID value which identifies the transaction.
+  optional bytes id = 3 [(gogoproto.nullable) = false, (gogoproto.customname) = "ID"];
+  optional int32 priority = 4 [(gogoproto.nullable) = false];
+  optional IsolationType isolation = 5 [(gogoproto.nullable) = false];
+  optional TransactionStatus status = 6 [(gogoproto.nullable) = false];
+  // Incremented on txn retry.
+  optional int32 epoch = 7 [(gogoproto.nullable) = false];
+  // The last heartbeat timestamp.
+  optional Timestamp last_heartbeat = 8;
+  // The proposed timestamp for the transaction. This starts as
+  // the current wall time on the txn coordinator.
+  optional Timestamp timestamp = 9 [(gogoproto.nullable) = false];
+  // The original timestamp at which the transaction started. For serializable
+  // transactions, if the timestamp drifts from the original timestamp, the
+  // transaction will retry.
+  optional Timestamp orig_timestamp = 10 [(gogoproto.nullable) = false];
+  // Initial Timestamp + clock skew. Reads which encounter values with
+  // timestamps between Timestamp and MaxTimestamp trigger a txn
+  // retry error, unless the node being read is listed in nodes_read
+  // (in which case no more read uncertainty can occur).
+  // The case MaxTimestamp < Timestamp is possible for transactions which have
+  // been pushed; in this case, MaxTimestamp should be ignored.
+  optional Timestamp max_timestamp = 11 [(gogoproto.nullable) = false];
+  // A sorted list of ids of nodes for which a ReadWithinUncertaintyIntervalError
+  // occurred during a prior read. The purpose of keeping this information is
+  // that as a reaction to this error, the transaction's timestamp is forwarded
+  // appropriately to reflect that node's clock uncertainty. Future reads to
+  // the same node are therefore freed from uncertainty restarts.
+  //
+  // The exact mechanism is that upon encountering the above error, the trans-
+  // action will have to retry with a higher timestamp. This higher timestamp
+  // is either the one of the encountered future write returned in the error
+  // or (if higher, which is in the majority of cases), the time of the node
+  // serving the key at the time of the failed read.
+  // Additionally storing the node, we make sure to set MaxTimestamp=Timestamp
+  // at the time of the read for nodes whose clock we've taken into acount,
+  // which amounts to reading without any uncertainty.
+  //
+  // Bits of this mechanism are found in the local sender, the range and the
+  // txn_coord_sender, with brief comments referring here.
+  // See https://github.com/cockroachdb/cockroach/pull/221.
+  optional NodeList certain_nodes = 12 [(gogoproto.nullable) = false];
+}
+
+// MVCCMetadata holds MVCC metadata for a key. Used by storage/engine/mvcc.go.
+message MVCCMetadata {
+  optional Transaction txn = 1;
+  // The timestamp of the most recent versioned value.
+  optional Timestamp timestamp = 2 [(gogoproto.nullable) = false];
+  // Is the most recent value a deletion tombstone?
+  optional bool deleted = 3 [(gogoproto.nullable) = false];
+  // The size in bytes of the most recent encoded key.
+  optional int64 key_bytes = 4 [(gogoproto.nullable) = false];
+  // The size in bytes of the most recent versioned value.
+  optional int64 val_bytes = 5 [(gogoproto.nullable) = false];
+  // Inline value, used for values with zero timestamp. This provides
+  // an efficient short circuit of the normal MVCC metadata sentinel
+  // and subsequent version rows. If timestamp == (0, 0), then there
+  // is only a single MVCC metadata row with value inlined, and with
+  // empty timestamp, key_bytes, and val_bytes.
+  optional Value value = 6;
+}
+
+// GCMetadata holds stats describing the state of data on disk after a
+// garbage collection pass. These stats are used to prioritize system
+// GC passes and enable the scheduler to avoid GCing ranges which have
+// very little sufficiently aged data.
+message GCMetadata {
+  // The last GC timestamp in nanoseconds since the Unix epoch.
+  optional int64 last_gc_nanos = 1 [(gogoproto.nullable) = false, (gogoproto.customname) = "LastGCNanos"];
+  // The GC TTL for the range at last GC.
+  optional int32 ttl_seconds = 2 [(gogoproto.nullable) = false, (gogoproto.customname) = "TTLSeconds"];
+
+  // Byte_counts is an array of byte counts with 10 entries. Each array
+  // entry corresponds to the number of non-live (historical) bytes aged
+  // less than some fraction of the TTL. The first entry in the array
+  // is the number of bytes aged less than 10% of the TTL; the second,
+  // the number aged less than 20%; etc...
+  //
+  // These are values at last GC, so given the current time,
+  // last_gc_nanos, and ttl_seconds, the count of bytes to be GC'd can
+  // be estimated.
+  repeated int64 byte_counts = 3 [(gogoproto.nullable) = false];
+}
