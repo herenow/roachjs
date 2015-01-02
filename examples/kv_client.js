@@ -6,10 +6,10 @@ var client = new Roach({
 	port: 8080
 })
 
-client.put('hjk', 'asd', function(err, res) {
+client.put("1", 'asd', function(err, res) {
 	console.log('put', err, res)
 })
 
-client.get('hjk', function(err, res) {
+client.get("1", function(err, res) {
 	console.log('get', err, res)
 })
