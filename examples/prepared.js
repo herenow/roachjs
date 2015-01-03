@@ -5,7 +5,7 @@ var client = new Roach({
 	port: 8080
 })
 
-for(var i = 0; i < 1000; i++) {
+for(var i = 0; i < 10; i++) {
 	(function(i) {
 		var c = client.prepare()
 		c.put(i, i, function(err, res) {
