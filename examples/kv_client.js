@@ -25,7 +25,7 @@ client.conditionalPut("1", 5, 10, function(err, res) {
 	console.log("putConditional", err, res)
 })
 
-client.scan("1", "5", function(err, res) {
+client.scan("1", "5", 100, function(err, res) {
 	console.log("scan", err, res)
 })
 
@@ -37,6 +37,6 @@ client.delete("1", function(err, res) {
 	console.log("delete", err, res)
 })
 
-client.deleteRange("1", "5", function(err, res) {
+client.deleteRange("1", "5", 100, function(err, res) {
 	console.log("deleteRange", err, res)
 })
