@@ -21,7 +21,7 @@ client.get("example_counter", function(err, res) {
 	console.log('get example_counter', err, res)
 })
 
-client.conditionalPut("1", 5, 10, function(err, res) {
+client.conditionalPut("1", "5", "10", function(err, res) {
 	console.log("putConditional", err, res)
 })
 
