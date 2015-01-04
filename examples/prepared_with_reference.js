@@ -19,7 +19,7 @@ c.flush(function(err) {
 		return
 	}
 
-	console.log('putResp', putResp)
-	console.log('getResp', getResp)
+	console.log('putResp', putResp.err, putResp.res)
+	console.log('getResp', getResp.err, getResp.res)
 })
 

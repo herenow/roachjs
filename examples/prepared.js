@@ -6,10 +6,14 @@ var client = new Roach({
 })
 
 var c = client.prepare()
+
 c.put("key", "value", function(err, res) {
+	console.log(err, res)
 })
+
 c.get("key", function(err, res) {
-	console.log(res)
+	console.log(err, res)
 })
+
 c.flush()
 
