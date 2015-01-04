@@ -6,9 +6,9 @@ var client = new Roach({
 })
 
 var c = client.prepare()
-c.put(i, i, function(err, res) {
+c.put("key", "value", function(err, res) {
 })
-c.get(i, function(err, res) {
+c.get("key", function(err, res) {
 	console.log(res)
 })
 c.flush()
