@@ -31,10 +31,12 @@ Internally it's is more or less the same, but this driver provides a friendlier 
         * [.prepare()](#client-prepare)
             * [.Response()](#prep-client-Response)
             * [.flush(callback)](#prep-client-flush)
+* [Extra](#extra)
+    * [Meta properties](#meta-structure)
 
-### <a name="examples"></a>Examples 
+## <a name="examples"></a>Examples
 
-#### <a name="example-init-client"></a> Initiating a client
+### <a name="example-init-client"></a> Initiating a client
 ```javascript
 var Roach = require('roachjs')
 
@@ -45,7 +47,7 @@ var client = new Roach({
 module.exports = client
 ```
 
-#### <a name="example-basic-1"></a> Basic client usage I 
+### <a name="example-basic-1"></a> Basic client usage I
 ```javascript
 client.get("sample_key", function(err, value, meta) {
     if(err) throw err
@@ -57,11 +59,11 @@ client.get("sample_key", function(err, value, meta) {
         else {
             // Sucess
         }
-    }) 
+    })
 })
 ```
 
-#### <a name="example-advanced-1"></a> Advanced client usage I 
+### <a name="example-advanced-1"></a> Advanced client usage I
 ```javascript
 // You should prepare your queries and send them in a single batch
 // For optimal performance
@@ -71,7 +73,7 @@ var c = client.prepare()
 // This callback will be the first to be executed
 c.get("sample_key", function(err, value, meta) {
     if(err) throw err
-    
+
     // Do something...
 })
 
@@ -95,7 +97,7 @@ c.flush(function(err, meta) {
 })
 ```
 
-#### <a name="example-advanced-2"></a> Advanced client usage II
+### <a name="example-advanced-2"></a> Advanced client usage II
 ```javascript
 var c = client.prepare()
 
@@ -111,26 +113,26 @@ c.flush(function(err) {
     if(err) throw err
 
     if(dogsResp.err) {
-        throw new Error('failed to get dogs') 
+        throw new Error('failed to get dogs')
     }
 
     if(kittensResp.err) {
-        throw new Error('failed to get kittens') 
+        throw new Error('failed to get kittens')
     }
-    
+
     c.put("other_dogs", dogsResp.value, function(err) {
         if(err) throw err
     })
- 
+
     c.put("other_kittens", kittensResp.value, function(err) {
         if(err) throw err
     })
-    
+
     c.flush()
 })
 ```
 
-#### <a name="example-advanced-3"></a> Advanced client usage III
+### <a name="example-advanced-3"></a> Advanced client usage III
 ```javascript
 // TODO:
 ```
@@ -145,46 +147,50 @@ Returns a new roachjs client with [options](#client-options).
 
 name | type | description
 --- | --- | ----
-`opts` | [options](#client-options) |
+`opts` | object | [see](#client-options)
 
 #### <a name="client-options"></a> Client options
 
 opt | description | default
 --- | --- | ---
-`uri` | uri to the cockroach http endpoint | http://127.0.0.1:8080/
-`host` | host or ip to the cockroach http endpoint | 127.0.0.1
-`port` | port to the cockroach http endpoint | 8080
-`ssl` | connect throught https | false 
-`retry` | retry requests when cockroach responds with a busy signal | true
+`uri` | uri to the cockroach http endpoint | `http://127.0.0.1:8080/`
+`host` | host or ip to the cockroach http endpoint | `127.0.0.1`
+`port` | port to the cockroach http endpoint | `8080`
+`ssl` | connect throught https | `false`
+`retry` | retry requests when cockroach responds with a busy signal | `true`
+`http` | http module to use | `require('http')`
+`clock` | clock module to use | `new Date()`
 
 #### <a name="client-methods"></a> Methods
 
-method 
---- |
-[get](#client-get) 
-[put] (#client-put)
-[conditionalPut](#client-conditionalPut)
-[contains](#client-contains)
-[increment](#client-increment)
-[scan](#client-scan)
-[delete](#client-delete)
-[deleteRange](#client-deleteRange)
-[prepare](#client-prepare)
+| method |
+| --- |
+| [get](#client-get) |
+| [put](#client-put) |
+| [conditionalPut](#client-conditionalPut) |
+| [contains](#client-contains) |
+| [increment](#client-increment) |
+| [scan](#client-scan) |
+| [delete](#client-delete) |
+| [deleteRange](#client-deleteRange) |
+| [prepare](#client-prepare) |
 
-### <a name="client-get"></a> client.get(key, callback) 
+### <a name="client-get"></a> client.get(key, callback)
+
+Gets a single entry from the datastore, specified by `key`.
 
 #### Parameters
 
 name | type | description
 --- | --- | ----
 `key` | string |  
-`callback` | callback | `function(err, value, meta) {}` 
+`callback` | callback | `function(err, value, meta) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
-`err` | Error |  
+`err` | Error() |  
 `value` | string |  
 `meta` | object | [see](#meta-struct)
 
@@ -193,22 +199,23 @@ name | type | description
 client.get("key", function(err, value, meta) {})
 ```
 
+### <a name="client-put"></a> client.put(key, value, callback)
 
-### <a name="client-put"></a> client.put(key, value, callback) 
+Puts a value in the datastore in the specified `key`.
 
 #### Parameters
 
 name | type | description
 --- | --- | ----
-`key` | string | 
-`value` | string | 
-`callback` | callback | `function(err, meta) {}` 
+`key` | string |
+`value` | string |
+`callback` | callback | `function(err, meta) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
-`err` | Error | 
+`err` | Error() |
 `meta` | object | [see](#meta-struct)
 
 #### Example
@@ -216,7 +223,7 @@ name | type | description
 client.put("key", "value", function(err, meta) {})
 ```
 
-### <a name="client-conditionalPut"></a> client.conditionalPut(key, value, ifValue, callback) 
+### <a name="client-conditionalPut"></a> client.conditionalPut(key, value, ifValue, callback)
 
 ConditionalPut sets the `value` for a `key` if the existing value matches the `ifValue`.
 Specifying an empty or null `ifValue` means the entry must not yet exist.
@@ -225,16 +232,16 @@ Specifying an empty or null `ifValue` means the entry must not yet exist.
 
 name | type | description
 --- | --- | ----
-`key` | string | 
-`value` | string | 
-`ifValue` | string\|null | use null to put if entry doens't exists  
-`callback` | callback | `function(err, meta) {}` 
+`key` | string |
+`value` | string |
+`ifValue` | string, null | use null to put if entry doens't exists  
+`callback` | callback | `function(err, meta) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
-`err` | Error | 
+`err` | Error() |
 `meta` | object | [see](#meta-struct)
 
 #### Example
@@ -243,64 +250,64 @@ client.conditionalPut("status", "running", "stopped", function(err, meta) {})
 client.conditionalPut("status", "new", null, function(err, meta) {})
 ```
 
-### <a name="client-contains"></a> client.contains(key, callback) 
+### <a name="client-contains"></a> client.contains(key, callback)
 
-Contains determines if a key exists in the datastore.
+Contains determines if a `key` exists in the datastore.
 
 #### Parameters
 
 name | type | description
 --- | --- | ----
-`key` | string | 
-`callback` | callback | `function(err, exists, meta) {}` 
+`key` | string |
+`callback` | callback | `function(err, exists, meta) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
-`err` | Error | 
-`exists` | boolean | 
+`err` | Error() |
+`exists` | boolean |
 `meta` | object | [see](#meta-struct)
 
 #### Example
 ```javascript
 client.contains("john", function(err, exists, meta) {
     if(exists === true) {
-        // john exists in the datastore    
+        // john exists in the datastore
     }
 })
 ```
 
-### <a name="client-increment"></a> client.increment(key, increment, callback) 
+### <a name="client-increment"></a> client.increment(key, increment, callback)
 
-Increment increments the value at the specified key.
-Once called for a key, Put & Get will return errors; only Increment will continue to be a valid command.
+Increment increments the value at the specified `key` by some `increment` value.
+Once called for a `key`, Put & Get will return errors; only Increment will continue to be a valid command.
 The value must be deleted before it can be reset using Put.
 
 #### Parameters
 
 name | type | description
 --- | --- | ----
-`key` | string | 
-`increment` | integer | increment by this value 
-`callback` | callback | `function(err, newValue, meta) {}` 
+`key` | string |
+`increment` | integer |
+`callback` | callback | `function(err, newValue, meta) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
-`err` | Error | 
-`newValue` | integer | returns you the new value for this counter, after this increment
+`err` | Error() |
+`newValue` | integer |  the new value for this counter, after the increment operation
 `meta` | object | [see](#meta-struct)
 
 #### Example
 ```javascript
 client.increment("counter", 5, function(err, newValue, meta) {
-    console.log('counter current value is', newValue) 
+    console.log('counter current value is', newValue)
 })
 ```
 
-### <a name="client-scan"></a> client.scan(start_key, end_key, limit, callback) 
+### <a name="client-scan"></a> client.scan(start_key, end_key, limit, callback)
 
 Scan the datastore for keys in the range of the `start_key` and `end_key`, limiting the result by `limit`.
 
@@ -308,18 +315,18 @@ Scan the datastore for keys in the range of the `start_key` and `end_key`, limit
 
 name | type | description
 --- | --- | ----
-`key` | string | 
-`start_key` | string | 
-`end_key` | string | 
-`limit` | integer | 
-`callback` | callback | `function(err, newValue, meta) {}` 
+`key` | string |
+`start_key` | string |
+`end_key` | string |
+`limit` | integer |
+`callback` | callback | `function(err, newValue, meta) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
-`err` | Error | 
-`results` | array | 
+`err` | Error() |
+`results` | array |
 `meta` | object | [see](#meta-struct)
 
 #### Example
@@ -331,22 +338,22 @@ client.scan("a", "Z", 100, function(err, results, meta) {
 })
 ```
 
-### <a name="client-delete"></a> client.delete(key, callback) 
+### <a name="client-delete"></a> client.delete(key, callback)
 
-Delete an entry from the datastore.
+Delete an entry from the datastore specified by `key`.
 
 #### Parameters
 
 name | type | description
 --- | --- | ----
-`key` | string | 
-`callback` | callback | `function(err, meta) {}` 
+`key` | string |
+`callback` | callback | `function(err, meta) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
-`err` | Error | 
+`err` | Error() |
 `meta` | object | [see](#meta-struct)
 
 #### Example
@@ -354,7 +361,7 @@ name | type | description
 client.delete("key", function(err, meta) {})
 ```
 
-### <a name="client-deleteRange"></a> client.deleteRange(start_key, end_key, limit, callback) 
+### <a name="client-deleteRange"></a> client.deleteRange(start_key, end_key, limit, callback)
 
 Delete all keys found in a range, from `start_key` to `end_key`, limited by `limit`.
 
@@ -362,18 +369,18 @@ Delete all keys found in a range, from `start_key` to `end_key`, limited by `lim
 
 name | type | description
 --- | --- | ----
-`key` | string | 
-`start_key` | string | 
-`end_key` | string | 
-`limit` | integer | 
-`callback` | callback | `function(err, deleted, meta) {}` 
+`key` | string |
+`start_key` | string |
+`end_key` | string |
+`limit` | integer |
+`callback` | callback | `function(err, deleted, meta) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
-`err` | Error | 
-`deleted` | integer | number of entries deleted 
+`err` | Error() |
+`deleted` | integer | number of entries deleted
 `meta` | object | [see](#meta-struct)
 
 #### Example
@@ -386,14 +393,14 @@ client.deleteRange("a", "Z", 100, function(err, deleted, meta) {
 ### <a name="client-prepare"></a> client.prepare()
 
 Return you a new *prepared* client. It inherits all the [methods](#client-methods) from the original [client](#client).
-Read [Advanced client usage II](#example-advanced-2) and [Advanced client usage III](#example-advanced-3) to understand how to use this client. 
+Read [Advanced client usage II](#example-advanced-2) and [Advanced client usage III](#example-advanced-3) to understand how to use this client.
 
 #### <a name="prep-client-methods"></a> Methods
 
-method 
---- |
-[flush](#prep-client-flush) | Flush the prepared queries
-[Response](#prep-client-Response) | [see](#example-advanced-3)
+| method | description |
+| --- | --- |
+| [flush](#prep-client-flush) | Flush the prepared queries |
+| [Response](#prep-client-Response) | [see](#example-advanced-3) |
 
 
 #### Example
@@ -423,15 +430,15 @@ Flush the prepared queries buffer, and send it as a batch request.
 
 name | type | description
 --- | --- | ----
-`callback` | callback | optional | `function(err, meta) {}` 
+`callback` | callback | optional
 
 
 #### Callback
 
 name | type | description
 --- | --- | ----
-`err` | Error | flush request failed 
-`meta` | object | [see](#flush-meta-struct)
+`err` | Error() | batch request failed
+`meta` | object | [see](#meta-struct)
 
 #### Example
 ```javascript
@@ -454,13 +461,27 @@ Read [Advanced client usage III](#example-advanced-3) to learn how to use this p
 
 Returns an response object.
 
-propertie | type | description
+property | type | description
 --- | --- | ----
-`err` | Error | is null if no error was returned 
-`value` | string\|number\|bool | general response value
-`meta` | object | [see](#meta-struct) 
+`err` | Error() | is null if no error was returned
+`value` | string, number, boolean | general response value
+`meta` | object | [see](#meta-struct)
 
-## Contributor
+## <a name="extra"></a>Extra
+
+### <a name="meta-struct"></a> Meta properties
+
+The meta argument contains information about the request response, and any other extra
+information data about the returned value.
+
+#### Properties
+
+property | type | description  
+--- | --- | ---
+`timestamp` | integer | timestamp of the returned entry
+`wall_time` | integer | timestamp of when the read or write operation was performed
+`flushed` | integer | number of flushed queries
+
+## Contributors
 
 * [herenow](/herenow)
-
