@@ -1,6 +1,8 @@
 RoachJS - CockroachDB Driver
 =======
 
+[![Build Status](https://travis-ci.org/herenow/roachjs.svg?branch=master)](https://travis-ci.org/herenow/roachjs)
+
 * [Introduction](#introduction)
 * [Documentation](#documentation)
 * [CockroachDB](https://github.com/cockroachdb/cockroach)
