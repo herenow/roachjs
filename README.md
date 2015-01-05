@@ -157,6 +157,7 @@ opt | description | default
 `host` | host or ip to the cockroach http endpoint | `127.0.0.1`
 `port` | port to the cockroach http endpoint | `8080`
 `ssl` | connect throught https | `false`
+`user` | user to run the requests with | `root`
 `retry` | retry requests when cockroach responds with a busy signal | `true`
 `http` | http module to use | `require('http')`
 `clock` | clock module to use | `new Date()`
