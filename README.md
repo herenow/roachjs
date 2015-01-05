@@ -31,8 +31,10 @@ Internally it's is more or less the same, but this driver provides a friendlier 
         * [.prepare()](#client-prepare)
             * [.Response()](#prep-client-Response)
             * [.flush(callback)](#prep-client-flush)
+        * [.runTransaction(opts, transaction, callback)](#client-runTransaction)
 * [Extra](#extra)
     * [Meta properties](#meta-structure)
+    * [Transaction function](#retryable-function)
 
 ## <a name="examples"></a>Examples
 
@@ -134,7 +136,48 @@ c.flush(function(err) {
 
 ### <a name="example-advanced-3"></a> Advanced client usage III
 ```javascript
-// TODO:
+var opts = {
+    name: "transaction example",
+}
+
+var errNoApples = new Error('Insufficient apples!')
+
+var transaction = function(txn, commit, abort) {
+    var applesInStock = txn.Response()
+
+    txn.get("applesInStock", applesInStock)
+
+    txn.flush(function(err) {
+        if(err || applesInStock.err) {
+            return abort(err)
+        }
+
+        var dispatch = 5
+        var inStock = ParseInt(applesInStock.value)
+
+        if(inStock < dispatch) {
+            return abort(errNoApples)
+        }
+
+        txn.increment("applesInStock", -dispatch)
+        txn.increment("applesInRoute", +dispatch)
+
+        // Commit automatically flushes
+        commit()
+    })
+}
+
+client.runTransaction(opts, transaction, function(err, meta) {
+    if(err === errNoApples) {
+        // Alert user there are no more apples...
+    }
+    else if(err) {
+        // Transaction failed...
+    }
+    else {
+        // Transaction commited...
+    }
+})
 ```
 
 ## <a name="interface"></a> Interface
@@ -175,6 +218,7 @@ opt | description | default
 | [delete](#client-delete) |
 | [deleteRange](#client-deleteRange) |
 | [prepare](#client-prepare) |
+| [runTransaction](#client-runTransaction) |
 
 ### <a name="client-get"></a> client.get(key, callback)
 
@@ -468,6 +512,38 @@ property | type | description
 `value` | string, number, boolean | general response value
 `meta` | object | [see](#meta-struct)
 
+### <a name="client-runTransaction"></a> client.runTransaction(opts, transaction, callback)
+
+RunTransaction executes a retryable `transaction` function in
+the context of a distributed transaction. The transaction is
+automatically aborted if retryable function returns any error aside from
+recoverable internal errors, and is automatically committed otherwise.
+retryable should have no side effects which could cause problems in the event
+it must be run more than once. The `opts` contains transaction settings.
+
+#### Parameters
+
+name | type | description
+--- | --- | ----
+`opts` | object | [options](#transaction-options)
+`transacation` | [retryable function](#retryable-function) | `function(txn, commit, abort) {}`
+`callback` | callback | `function(err, meta) {}`
+
+#### <a name="transaction-options"></a> Transaction options
+
+opt | description | default
+--- | --- | ---
+`name` | transaction name for debugging | `""`
+`isolation` |  | `0`
+
+
+#### Callback
+
+name | type | description
+--- | --- | ----
+`err` | Error() | if transaction fails
+`meta` | object | [see](#meta-struct)
+
 ## <a name="extra"></a>Extra
 
 ### <a name="meta-struct"></a> Meta properties
@@ -482,6 +558,45 @@ property | type | description
 `timestamp` | integer | timestamp of the returned entry
 `wall_time` | integer | timestamp of when the read or write operation was performed
 `flushed` | integer | number of flushed queries
+
+### <a name="retryable-function"></a> Transaction function
+
+The transaction function is an retryable function, it may be
+executed more than once. This function should never forget to
+call `commit` or `abort`. Throwing an error inside this
+function also aborts the transaction.
+
+#### Arguments
+name | type | description
+--- | --- | ----
+`txn` | [Prepared client](#client-prepare) | this client is the same as `client.prepare()`, you can flush yourself if you don't wan't to commit yet.
+`commit` | callback | to try to commit transaction
+`abort` | callback | to abort transaction
+
+* `abort()` accepts an optional `Error`. This error will be passed to the
+[.runTransaction](#client-runTransaction) callback.
+
+#### Example
+
+```javascript
+// Response will hold the individual responses
+// of each transaction command.
+var response = []
+
+var transaction = function(txn, commit, abort) {
+    for(var i = 0; i < 100; i++) {
+        var key = i.toString()
+
+        response[i] = prepare.Response()
+
+        txn.put(key, "hello", response[i])
+    }
+
+    // Commit automatically flushes
+    // the prepared transaction.
+    commit()
+}
+```
 
 ## Contributors
 
