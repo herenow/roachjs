@@ -12,25 +12,25 @@ Internally it's is more or less the same, but this driver provides a friendlier 
 
 ## <a name="documentation"></a> Documentation
 
-    * [Examples](#examples)
-        * [Initiating a client](#example-init-client)
-        * [Basic client usage I](#example-basic-1)
-        * [Advanced client usage I (Prepare & Flush)](#example-advanced-1)
-        * [Advanced client usage II (Response & Prepare & Flush)(#example-advanced-2)
-        * [Advanced client usage III (Transactions)](#example-advanced-3)
-    * Interface
-        * [new Client(opts)](#client)
-            * [.get(key, callback)](#client-get)
-            * [.put(key, value, callback)](#client-put)
-            * [.conditionalPut(key, value, ifValue, callback)](#client-conditionalPut)
-            * [.increment(key, increment, callback)](#client-increment)
-            * [.contains(key, callback)](#client-contains)
-            * [.scan(start_key, end_key, limit, callback)](#client-scan)
-            * [.delete(key, callback)](#client-delete)
-            * [.deleteRange(start_key, end_key, limit, callback)](#client-deleteRange)
-            * [.prepare()](#client-prepare)
-                * [.Response()](#prep-client-Response)
-                * [.flush(callback)](#prep-client-flush)
+* [Examples](#examples)
+    * [Initiating a client](#example-init-client)
+    * [Basic client usage I](#example-basic-1)
+    * [Advanced client usage I (Prepare & Flush)](#example-advanced-1)
+    * [Advanced client usage II (Response & Prepare & Flush)](#example-advanced-2)
+    * [Advanced client usage III (Transactions)](#example-advanced-3)
+* [Interface](#interface)
+    * [new Client(opts)](#client)
+        * [.get(key, callback)](#client-get)
+        * [.put(key, value, callback)](#client-put)
+        * [.conditionalPut(key, value, ifValue, callback)](#client-conditionalPut)
+        * [.increment(key, increment, callback)](#client-increment)
+        * [.contains(key, callback)](#client-contains)
+        * [.scan(start_key, end_key, limit, callback)](#client-scan)
+        * [.delete(key, callback)](#client-delete)
+        * [.deleteRange(start_key, end_key, limit, callback)](#client-deleteRange)
+        * [.prepare()](#client-prepare)
+            * [.Response()](#prep-client-Response)
+            * [.flush(callback)](#prep-client-flush)
 
 ### <a name="examples"></a>Examples 
 
@@ -227,7 +227,7 @@ name | type | description
 --- | --- | ----
 `key` | string | 
 `value` | string | 
-`ifValue` | string|null | use null to put if entry doens't exists  
+`ifValue` | string\|null | use null to put if entry doens't exists  
 `callback` | callback | `function(err, meta) {}` 
 
 #### Callback
@@ -457,7 +457,7 @@ Returns an response object.
 propertie | type | description
 --- | --- | ----
 `err` | Error | is null if no error was returned 
-`value` | string|number|bool | general response value
+`value` | string\|number\|bool | general response value
 `meta` | object | [see](#meta-struct) 
 
 ## Contributor
