@@ -497,7 +497,7 @@ client.flush(function(err, meta) {
 })
 ```
 
-### <a name="prep-client-flush"></a> client.Response()
+### <a name="prep-client-Response"></a> client.Response()
 
 Flush the prepared queries buffer, and send it as a batch request.
 Read [Advanced client usage III](#example-advanced-3) to learn how to use this pattern.
@@ -579,17 +579,13 @@ name | type | description
 #### Example
 
 ```javascript
-// Response will hold the individual responses
-// of each transaction command.
-var response = []
-
 var transaction = function(txn, commit, abort) {
     for(var i = 0; i < 100; i++) {
         var key = i.toString()
 
-        response[i] = prepare.Response()
-
-        txn.put(key, "hello", response[i])
+        // Provide an txn.Response()
+        // just so it won't trow an error
+        txn.put(key, "hello", txn.Response())
     }
 
     // Commit automatically flushes
