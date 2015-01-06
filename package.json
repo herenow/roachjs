@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/herenow/roachjs",
   "devDependencies": {
-    "nock": "~0.52.x",
-    "nodeunit": "~0.9.x"
+    "nodeunit": "~0.9.0"
   }
 }
