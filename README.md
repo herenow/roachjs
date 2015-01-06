@@ -1,9 +1,11 @@
-RoachJS - CockroachDB Driver
-=======
+# RoachJS - CockroachDB Driver
+
+[![NPM](https://nodei.co/npm/roachjs.png?downloads=true&stars=true)](https://nodei.co/npm/roachjs/)[![NPM](https://nodei.co/npm-dl/roachjs.png?months=3&height=2)](https://nodei.co/npm/roachjs/)
 
 [![Build Status](https://travis-ci.org/herenow/roachjs.svg?branch=master)](https://travis-ci.org/herenow/roachjs)
 
 * [Introduction](#introduction)
+* [Installation](#Installation)
 * [Documentation](#documentation)
 * [CockroachDB](https://github.com/cockroachdb/cockroach)
 
@@ -11,6 +13,12 @@ RoachJS - CockroachDB Driver
 
 This client is a port from the original [Golang client](http://godoc.org/github.com/cockroachdb/cockroach/client).
 Internally it's is more or less the same, but this driver provides a friendlier javascript interface.
+
+## <a name="installation"></a> Installation
+
+```bash
+$ npm install roachjs
+```
 
 ## <a name="documentation"></a> Documentation
 
