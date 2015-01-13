@@ -29,6 +29,6 @@
     "nodeunit": "~0.9.0"
   },
   "dependencies": {
-    "protobufjs": "^3.8.2"
+    "protobufjs": "~3.8.2"
   }
 }
