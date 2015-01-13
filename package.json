@@ -24,5 +24,8 @@
   "homepage": "https://github.com/herenow/roachjs",
   "devDependencies": {
     "nodeunit": "~0.9.0"
+  },
+  "dependencies": {
+    "protobufjs": "^3.8.2"
   }
 }
