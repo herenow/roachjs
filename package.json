@@ -3,6 +3,9 @@
   "version": "0.1.12",
   "description": "Node.js driver for cockroachdb.",
   "main": "index.js",
+  "engines": {
+	"node": ">=0.8"
+  },
   "scripts": {
     "test": "node ./node_modules/.bin/nodeunit lib/*_test.js"
   },
