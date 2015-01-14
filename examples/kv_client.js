@@ -22,7 +22,7 @@ client.get("example_counter", function(err, res) {
 })
 
 client.conditionalPut("1", "5", 'asd', function(err, res) {
-	console.log("putConditional", err, res, res.header.error)
+	console.log("putConditional", err, res)
 })
 
 client.scan("1", "5", 100, function(err, res) {
@@ -40,3 +40,4 @@ client.delete("1", function(err, res) {
 client.deleteRange("1", "5", 100, function(err, res) {
 	console.log("deleteRange", err, res)
 })
+
