@@ -15,5 +15,7 @@ c.get("key", function(err, res) {
 	console.log(err, res)
 })
 
-c.flush()
+c.flush(function(err) {
+	console.log('flush', err)
+})
 
