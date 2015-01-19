@@ -163,7 +163,7 @@ var transaction = function(txn, commit, abort) {
         }
 
         var dispatch = 5
-        var inStock = ParseInt(applesInStock.value)
+        var inStock = parseInt(applesInStock.value)
 
         if(inStock < dispatch) {
             return abort(errNoApples)
