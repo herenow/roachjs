@@ -11,17 +11,13 @@ var opts = {
 var errNoApples = new Error('Insufficient apples!')
 
 var transaction = function(txn, commit, abort) {
-    var applesInStock = txn.Response()
-
-    txn.get("applesInStock", applesInStock)
-
-    txn.flush(function(err) {
-        if(err || applesInStock.err) {
+    txn.get("applesInStock", function(err, value) {
+        if(err) {
             return abort(err)
         }
 
         var dispatch = 5
-        var inStock = parseInt(applesInStock.value)
+        var inStock = parseInt(value.toString())
 
         if(inStock < dispatch) {
             return abort(errNoApples)
@@ -35,7 +31,7 @@ var transaction = function(txn, commit, abort) {
     })
 }
 
-client.runTransaction(opts, transaction, function(err, meta) {
+client.runTransaction(opts, transaction, function(err, res) {
     if(err === errNoApples) {
         // Alert user there are no more apples...
          console.log('errNoApples')
