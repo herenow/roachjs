@@ -297,12 +297,13 @@ name | type | description
 name | type | description
 --- | --- | ----
 `err` | Error() |
+`actualValue` | Buffer | If conditional put fails this value is set
 `meta` | object | [see](#meta-struct)
 
 #### Example
 ```javascript
-client.conditionalPut("status", "running", "stopped", function(err, meta) {})
-client.conditionalPut("status", "new", null, function(err, meta) {})
+client.conditionalPut("status", "running", "stopped", function(err, actualValue, meta) {})
+client.conditionalPut("status", "new", null, function(err, actualValue, meta) {})
 ```
 
 ### <a name="client-contains"></a> client.contains(key, callback)
@@ -374,21 +375,21 @@ name | type | description
 `start_key` | string |
 `end_key` | string |
 `limit` | integer |
-`callback` | callback | `function(err, newValue, meta) {}`
+`callback` | callback | `function(err, rows, meta) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
 `err` | Error() |
-`results` | array |
+`rows` | array |
 `meta` | object | [see](#meta-struct)
 
 #### Example
 ```javascript
-client.scan("a", "Z", 100, function(err, results, meta) {
-    for(value as results) {
-        console.log(value)
+client.scan("a", "Z", 100, function(err, rows, meta) {
+    for(row as rows) {
+        console.log(row)
     }
 })
 ```
