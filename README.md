@@ -26,8 +26,7 @@ $ npm install roachjs
     * [Initiating a client](#example-init-client)
     * [Basic client usage I](#example-basic-1)
     * [Advanced client usage I (Prepare & Flush)](#example-advanced-1)
-    * [Advanced client usage II (Response & Prepare & Flush)](#example-advanced-2)
-    * [Advanced client usage III (Transactions)](#example-advanced-3)
+    * [Advanced client usage II (Transactions)](#example-advanced-2)
 * [Interface](#interface)
     * [new Client(opts)](#client)
         * [.get(key, callback)](#client-get)
@@ -39,11 +38,10 @@ $ npm install roachjs
         * [.delete(key, callback)](#client-delete)
         * [.deleteRange(start_key, end_key, limit, callback)](#client-deleteRange)
         * [.prepare()](#client-prepare)
-            * [.Response()](#prep-client-Response)
             * [.flush(callback)](#prep-client-flush)
         * [.runTransaction(opts, transaction, callback)](#client-runTransaction)
 * [Extra](#extra)
-    * [Meta properties](#meta-structure)
+    * [Response properties](#res-structure)
     * [Transaction function](#retryable-function)
 
 ## <a name="examples"></a>Examples
@@ -61,10 +59,10 @@ module.exports = client
 
 ### <a name="example-basic-1"></a> Basic client usage I
 ```javascript
-client.get("sample_key", function(err, value, meta) {
+client.get("sample_key", function(err, value, res) {
     if(err) throw err
 
-    client.put("other_key", value, function(err) {
+    client.put("other_key", value, function(err, res) {
         if(err) {
             // Failed
         }
@@ -75,21 +73,20 @@ client.get("sample_key", function(err, value, meta) {
 })
 ```
 
-### <a name="example-advanced-1"></a> Advanced client usage I
+### <a name="example-advanced-1"></a> Advanced client usage I (Prepare & Flush)
 ```javascript
 // You should prepare your queries and send them in a single batch
 // For optimal performance
-// This actually returns you a new client
 var c = client.prepare()
 
 // This callback will be the first to be executed
-c.get("sample_key", function(err, value, meta) {
+c.get("sample_key", function(err, value, res) {
     if(err) throw err
 
     // Do something...
 })
 
-c.get("sample_key2", function(err, value, meta) {
+c.get("sample_key2", function(err, value, res) {
     if(err) throw err
 
     // Do something...
@@ -102,49 +99,14 @@ c.put("some_key", "some_value", function(err) {
 })
 
 // The flush callback is the last one to be called
-c.flush(function(err, meta) {
+c.flush(function(err, res) {
     if(err) throw err
 
-    console.log('Sucessfuly flushed %d queries.', meta.flushed)
+    console.log('Sucessfuly flushed %d queries.', res.responses.length)
 })
 ```
 
-### <a name="example-advanced-2"></a> Advanced client usage II
-```javascript
-var c = client.prepare()
-
-// This objects (references) will be sent in place of the callback
-// This pattern is a great pattern to keep your sanity :)
-var dogsResp    = c.Response()
-var kittensResp = c.Response()
-
-c.get("dogs", dogsResp)
-c.get("kittens", kittensResp)
-
-c.flush(function(err) {
-    if(err) throw err
-
-    if(dogsResp.err) {
-        throw new Error('failed to get dogs')
-    }
-
-    if(kittensResp.err) {
-        throw new Error('failed to get kittens')
-    }
-
-    c.put("other_dogs", dogsResp.value, function(err) {
-        if(err) throw err
-    })
-
-    c.put("other_kittens", kittensResp.value, function(err) {
-        if(err) throw err
-    })
-
-    c.flush()
-})
-```
-
-### <a name="example-advanced-3"></a> Advanced client usage III
+### <a name="example-advanced-2"></a> Advanced client usage II (Transactions)
 ```javascript
 var opts = {
     name: "transaction example",
@@ -153,21 +115,20 @@ var opts = {
 var errNoApples = new Error('Insufficient apples!')
 
 var transaction = function(txn, commit, abort) {
-    var applesInStock = txn.Response()
-
-    txn.get("applesInStock", applesInStock)
-
-    txn.flush(function(err) {
+    txn.get("applesInStock", function(err, value, res) {
         if(err || applesInStock.err) {
-            return abort(err)
+                return abort(err)
+            }
+
+            var dispatch = 5
+            var inStock = parseInt(applesInStock.value)
+
+            if(inStock < dispatch) {
+                return abort(errNoApples)
         }
 
-        var dispatch = 5
-        var inStock = parseInt(applesInStock.value)
-
-        if(inStock < dispatch) {
-            return abort(errNoApples)
-        }
+        // Upgrade for a prepared client
+        txn = txn.prepare()
 
         txn.increment("applesInStock", -dispatch)
         txn.increment("applesInRoute", +dispatch)
@@ -177,7 +138,7 @@ var transaction = function(txn, commit, abort) {
     })
 }
 
-client.runTransaction(opts, transaction, function(err, meta) {
+client.runTransaction(opts, transaction, function(err, res) {
     if(err === errNoApples) {
         // Alert user there are no more apples...
     }
@@ -239,43 +200,44 @@ Gets a single entry from the datastore, specified by `key`.
 name | type | description
 --- | --- | ----
 `key` | string |  
-`callback` | callback | `function(err, value, meta) {}`
+`callback` | callback | `function(err, value, res) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
 `err` | Error() |  
-`value` | string |  
-`meta` | object | [see](#meta-struct)
+`value` | Buffer |  
+`res` | object | [see](#res-struct)
 
 #### Example
 ```javascript
-client.get("key", function(err, value, meta) {})
+client.get("key", function(err, value, res) {})
 ```
 
 ### <a name="client-put"></a> client.put(key, value, callback)
 
-Puts a value in the datastore in the specified `key`.
+Puts a value in the datastore in the specified `key`. Ideally you
+should send in buffers, but you can pass a string, preferably an utf-8 encoded string.
 
 #### Parameters
 
 name | type | description
 --- | --- | ----
 `key` | string |
-`value` | string |
-`callback` | callback | `function(err, meta) {}`
+`value` | Buffer, string |
+`callback` | callback | `function(err, res) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
 `err` | Error() |
-`meta` | object | [see](#meta-struct)
+`res` | object | [see](#res-struct)
 
 #### Example
 ```javascript
-client.put("key", "value", function(err, meta) {})
+client.put("key", "value", function(err, res) {})
 ```
 
 ### <a name="client-conditionalPut"></a> client.conditionalPut(key, value, ifValue, callback)
@@ -288,9 +250,9 @@ Specifying an empty or null `ifValue` means the entry must not yet exist.
 name | type | description
 --- | --- | ----
 `key` | string |
-`value` | string |
-`ifValue` | string, null | use null to put if entry doens't exists  
-`callback` | callback | `function(err, meta) {}`
+`value` | Buffer, string |
+`ifValue` | Buffer, string, null | use `null` to put if entry doens't exists  
+`callback` | callback | `function(err, res) {}`
 
 #### Callback
 
@@ -298,12 +260,12 @@ name | type | description
 --- | --- | ----
 `err` | Error() |
 `actualValue` | Buffer | If conditional put fails this value is set
-`meta` | object | [see](#meta-struct)
+`res` | object | [see](#res-struct)
 
 #### Example
 ```javascript
-client.conditionalPut("status", "running", "stopped", function(err, actualValue, meta) {})
-client.conditionalPut("status", "new", null, function(err, actualValue, meta) {})
+client.conditionalPut("status", "running", "stopped", function(err, actualValue, res) {})
+client.conditionalPut("status", "new", null, function(err, actualValue, res) {})
 ```
 
 ### <a name="client-contains"></a> client.contains(key, callback)
@@ -315,7 +277,7 @@ Contains determines if a `key` exists in the datastore.
 name | type | description
 --- | --- | ----
 `key` | string |
-`callback` | callback | `function(err, exists, meta) {}`
+`callback` | callback | `function(err, exists, res) {}`
 
 #### Callback
 
@@ -323,11 +285,11 @@ name | type | description
 --- | --- | ----
 `err` | Error() |
 `exists` | boolean |
-`meta` | object | [see](#meta-struct)
+`res` | object | [see](#res-struct)
 
 #### Example
 ```javascript
-client.contains("john", function(err, exists, meta) {
+client.contains("john", function(err, exists, res) {
     if(exists === true) {
         // john exists in the datastore
     }
@@ -346,7 +308,7 @@ name | type | description
 --- | --- | ----
 `key` | string |
 `increment` | integer |
-`callback` | callback | `function(err, newValue, meta) {}`
+`callback` | callback | `function(err, newValue, res) {}`
 
 #### Callback
 
@@ -354,11 +316,11 @@ name | type | description
 --- | --- | ----
 `err` | Error() |
 `newValue` | integer |  the new value for this counter, after the increment operation
-`meta` | object | [see](#meta-struct)
+`res` | object | [see](#res-struct)
 
 #### Example
 ```javascript
-client.increment("counter", 5, function(err, newValue, meta) {
+client.increment("counter", 5, function(err, newValue, res) {
     console.log('counter current value is', newValue)
 })
 ```
@@ -375,7 +337,7 @@ name | type | description
 `start_key` | string |
 `end_key` | string |
 `limit` | integer |
-`callback` | callback | `function(err, rows, meta) {}`
+`callback` | callback | `function(err, rows, res) {}`
 
 #### Callback
 
@@ -383,11 +345,11 @@ name | type | description
 --- | --- | ----
 `err` | Error() |
 `rows` | array |
-`meta` | object | [see](#meta-struct)
+`res` | object | [see](#res-struct)
 
 #### Example
 ```javascript
-client.scan("a", "Z", 100, function(err, rows, meta) {
+client.scan("a", "Z", 100, function(err, rows, res) {
     for(row as rows) {
         console.log(row)
     }
@@ -403,18 +365,18 @@ Delete an entry from the datastore specified by `key`.
 name | type | description
 --- | --- | ----
 `key` | string |
-`callback` | callback | `function(err, meta) {}`
+`callback` | callback | `function(err, res) {}`
 
 #### Callback
 
 name | type | description
 --- | --- | ----
 `err` | Error() |
-`meta` | object | [see](#meta-struct)
+`res` | object | [see](#res-struct)
 
 #### Example
 ```javascript
-client.delete("key", function(err, meta) {})
+client.delete("key", function(err, res) {})
 ```
 
 ### <a name="client-deleteRange"></a> client.deleteRange(start_key, end_key, limit, callback)
@@ -429,7 +391,7 @@ name | type | description
 `start_key` | string |
 `end_key` | string |
 `limit` | integer |
-`callback` | callback | `function(err, deleted, meta) {}`
+`callback` | callback | `function(err, deleted, res) {}`
 
 #### Callback
 
@@ -437,41 +399,41 @@ name | type | description
 --- | --- | ----
 `err` | Error() |
 `deleted` | integer | number of entries deleted
-`meta` | object | [see](#meta-struct)
+`res` | object | [see](#res-struct)
 
 #### Example
 ```javascript
-client.deleteRange("a", "Z", 100, function(err, deleted, meta) {
+client.deleteRange("a", "Z", 100, function(err, deleted, res) {
     console.log('deleted %d entries', deleted)
 })
 ```
 
 ### <a name="client-prepare"></a> client.prepare()
 
-Return you a new *prepared* client. It inherits all the [methods](#client-methods) from the original [client](#client).
-Read [Advanced client usage II](#example-advanced-2) and [Advanced client usage III](#example-advanced-3) to understand how to use this client.
+Return you a new *prepared* client. It has all the [methods](#client-methods) from the original [client](#client).
+Read [Advanced client usage II](#example-advanced-2) to understand how to use this client.
+You should always use this client when sending in multiple queries, this will batch them together in a single request.
 
 #### <a name="prep-client-methods"></a> Methods
 
 | method | description |
 | --- | --- |
 | [flush](#prep-client-flush) | Flush the prepared queries |
-| [Response](#prep-client-Response) | [see](#example-advanced-3) |
 
 
 #### Example
 ```javascript
 var c = client.prepare()
 
-c.get("key", function(err, value, meta) {
+c.get("key", function(err, value, res) {
     // Do something...
 })
 
-c.get("key2", function(err, value, meta) {
+c.get("key2", function(err, value, res) {
     // Do something...
 })
 
-c.put("key3", "value", function(err, meta) {
+c.put("key3", "value", function(err, res) {
     // Do something...
 })
 
@@ -494,24 +456,19 @@ name | type | description
 name | type | description
 --- | --- | ----
 `err` | Error() | batch request failed
-`meta` | object | [see](#meta-struct)
+`res` | object | [see](#res-struct)
 
 #### Example
 ```javascript
-client.flush(function(err, meta) {
+client.flush(function(err, res) {
     if(err) {
         // Flush failed..
     }
     else {
-        console.log('flushed %d queries.', meta.flushed)
+        console.log('flushed %d queries.', res.responses.length)
     }
 })
 ```
-
-### <a name="prep-client-Response"></a> client.Response()
-
-Flush the prepared queries buffer, and send it as a batch request.
-Read [Advanced client usage III](#example-advanced-3) to learn how to use this pattern.
 
 #### Returns
 
@@ -521,7 +478,7 @@ property | type | description
 --- | --- | ----
 `err` | Error() | is null if no error was returned
 `value` | string, number, boolean | general response value
-`meta` | object | [see](#meta-struct)
+`res` | object | [see](#res-struct)
 
 ### <a name="client-runTransaction"></a> client.runTransaction(opts, transaction, callback)
 
@@ -538,7 +495,7 @@ name | type | description
 --- | --- | ----
 `opts` | object | [options](#transaction-options)
 `transacation` | [retryable function](#retryable-function) | `function(txn, commit, abort) {}`
-`callback` | callback | `function(err, meta) {}`
+`callback` | callback | `function(err, res) {}`
 
 #### <a name="transaction-options"></a> Transaction options
 
@@ -553,14 +510,14 @@ opt | description | default
 name | type | description
 --- | --- | ----
 `err` | Error() | if transaction fails
-`meta` | object | [see](#meta-struct)
+`res` | object | [see](#res-struct)
 
 ## <a name="extra"></a>Extra
 
-### <a name="meta-struct"></a> Meta properties
+### <a name="res-struct"></a> Response properties
 
-The meta argument contains information about the request response, and any other extra
-information data about the returned value.
+The `res` argument contains the full database response, each database command can 
+contain a different set of properties. This document will try to state some of the possible properties. 
 
 #### Properties
 
@@ -568,7 +525,6 @@ property | type | description
 --- | --- | ---
 `timestamp` | integer | timestamp of the returned entry
 `wall_time` | integer | timestamp of when the read or write operation was performed
-`flushed` | integer | number of flushed queries
 
 ### <a name="retryable-function"></a> Transaction function
 
@@ -591,12 +547,12 @@ name | type | description
 
 ```javascript
 var transaction = function(txn, commit, abort) {
+    txn = txn.prepare()
+
     for(var i = 0; i < 100; i++) {
         var key = i.toString()
 
-        // Provide an txn.Response()
-        // just so it won't trow an error
-        txn.put(key, "hello", txn.Response())
+        txn.put(key, "hello")
     }
 
     // Commit automatically flushes
