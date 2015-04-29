@@ -22,4 +22,3 @@ c.flush(function(err) {
 	console.log('putResp', putResp.err, putResp.res)
 	console.log('getResp', getResp.err, getResp.res)
 })
-

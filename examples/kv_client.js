@@ -40,4 +40,3 @@ client.delete("1", function(err, res) {
 client.deleteRange("1", "5", 100, function(err, deleted, res) {
 	console.log("deleteRange", err, deleted, res)
 })
-
