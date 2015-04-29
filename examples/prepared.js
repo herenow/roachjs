@@ -18,4 +18,3 @@ c.get("key", function(err, res) {
 c.flush(function(err) {
 	console.log('flush', err)
 })
-

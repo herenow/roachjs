@@ -516,8 +516,8 @@ name | type | description
 
 ### <a name="res-struct"></a> Response properties
 
-The `res` argument contains the full database response, each database command can 
-contain a different set of properties. This document will try to state some of the possible properties. 
+The `res` argument contains the full database response, each database command can
+contain a different set of properties. This document will try to state some of the possible properties.
 
 #### Properties
 

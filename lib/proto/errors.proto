@@ -137,4 +137,3 @@ message Error {
   optional WriteTooOldError write_too_old = 11;
   optional OpRequiresTxnError op_requires_txn = 12;
 }
-
