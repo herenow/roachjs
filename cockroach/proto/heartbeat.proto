@@ -1,0 +1,39 @@
+syntax = "proto2";
+
+package cockroach.proto;
+
+option go_package = "proto";
+
+// RemoteOffset keeps track of this client's estimate of its offset from a
+//  remote server. Error is the maximum error in the reading of this offset, so
+//  that the real offset should be in the interval [Offset - Error, Offset
+//  + Error]. If the last heartbeat timed out, Offset = InfiniteOffset.
+//  Offset and error are measured using the remote clock reading technique
+//  described in http://se.inf.tu-dresden.de/pubs/papers/SRDS1994.pdf, page 6.
+message RemoteOffset {
+  // The estimated offset from the remote server, in nanoseconds.
+  optional int64 offset = 1;
+  // The maximum error of the measured offset, in nanoseconds.
+  optional int64 error = 2;
+  // Measurement time, in nanoseconds from unix epoch.
+  optional int64 measured_at = 3;
+}
+
+// A PingRequest specifies the string to echo in response.
+//  Fields are exported so that they will be serialized in the rpc call.
+message PingRequest {
+  // Echo this string with PingResponse.
+  optional string ping = 1;
+  // The last offset the client measured with the server.
+  optional .cockroach.proto.RemoteOffset offset = 2;
+  // The address of the client.
+  optional string addr = 3;
+}
+
+// A PingResponse contains the echoed ping request string.
+message PingResponse {
+  // An echo of value sent with PingRequest.
+  optional string pong = 1;
+  optional int64 server_time = 2;
+}
+

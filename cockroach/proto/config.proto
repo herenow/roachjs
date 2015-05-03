@@ -1,0 +1,96 @@
+syntax = "proto2";
+
+package cockroach.proto;
+
+option go_package = "proto";
+
+// Attributes specifies a list of arbitrary strings describing
+//  node topology, store type, and machine capabilities.
+message Attributes {
+  repeated string attrs = 1;
+}
+
+// Replica describes a replica location by node ID (corresponds to a
+//  host:port via lookup on gossip network), store ID (identifies the
+//  device) and associated attributes. Replicas are stored in Range
+//  lookup records (meta1, meta2).
+message Replica {
+  optional int32 node_id = 1;
+  optional int32 store_id = 2;
+  // Combination of node & store attributes.
+  optional .cockroach.proto.Attributes attrs = 3;
+}
+
+// RangeDescriptor is the value stored in a range metadata key.
+//  A range is described using an inclusive start key, a non-inclusive end key,
+//  and a list of replicas where the range is stored.
+message RangeDescriptor {
+  optional int64 raft_id = 1;
+  // StartKey is the first key which may be contained by this range.
+  optional bytes start_key = 2;
+  // EndKey marks the end of the range's possible keys.  EndKey itself is not
+  //  contained in this range - it will be contained in the immediately
+  //  subsequent range.
+  optional bytes end_key = 3;
+  // Replicas is the set of replicas on which this range is stored, the
+  //  ordering being arbitrary and subject to permutation.
+  repeated .cockroach.proto.Replica replicas = 4;
+}
+
+// GCPolicy defines garbage collection policies which apply to MVCC
+//  values within a zone.
+//  TODO(spencer): flesh this out to include maximum number of values
+//    as well as whether there's an intersection between max values
+//    and TTL or a union.
+message GCPolicy {
+  // TTLSeconds specifies the maximum age of a value before it's
+  //  garbage collected. Only older versions of values are garbage
+  //  collected. Specifying <=0 mean older versions are never GC'd.
+  optional int32 ttl_seconds = 1;
+}
+
+// AcctConfig holds accounting configuration.
+message AcctConfig {
+  optional string cluster_id = 1;
+}
+
+// PermConfig holds permission configuration, specifying read/write ACLs.
+message PermConfig {
+  // ACL lists users with read permissions.
+  repeated string read = 1;
+  // ACL lists users with write permissions.
+  repeated string write = 2;
+}
+
+// ZoneConfig holds configuration that is needed for a range of KV pairs.
+message ZoneConfig {
+  // ReplicaAttrs is a slice of Attributes, each describing required attributes
+  //  for each replica in the zone. The order in which the attributes are stored
+  //  in ReplicaAttrs is arbitrary and may change.
+  repeated .cockroach.proto.Attributes replica_attrs = 1;
+  optional int64 range_min_bytes = 2;
+  optional int64 range_max_bytes = 3;
+  // If GC policy is not set, uses the next highest, non-null policy
+  //  in the zone config hierarchy, up to the default policy if necessary.
+  optional .cockroach.proto.GCPolicy gc = 4;
+}
+
+// RangeTree holds the root node and size of the range tree.
+message RangeTree {
+  optional bytes root_key = 1;
+}
+
+// RangeTreeNode holds the configuration for each node of the Red-Black Tree that references all ranges.
+message RangeTreeNode {
+  // Using gogoproto's marshaler is needed here as there is a bug in the default 
+  //  marshalling using reflection that does not handle the Key custom type as 
+  //  nullable correctly.
+  optional bytes key = 1;
+  // Color is black if true, red if false.
+  optional bool black = 2;
+  // If the parent key is null, this is the root node.
+  optional bytes parent_key = 3;
+  optional bytes left_key = 4;
+  optional bytes right_key = 5;
+}
+
