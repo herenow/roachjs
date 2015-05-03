@@ -1,0 +1,155 @@
+syntax = "proto2";
+
+import "cockroach/proto/config.proto";
+import "cockroach/proto/data.proto";
+package cockroach.proto;
+
+option go_package = "proto";
+
+// TransactionRestart indicates how an error should be handled in a
+//  transactional context.
+enum TransactionRestart {
+  // ABORT (the default) is for errors that are considered permanent
+  //  and should abort the transaction.
+  ABORT = 0;
+  // BACKOFF is for errors that can retried by restarting the transaction
+  //  after an exponential backoff.
+  BACKOFF = 1;
+  // IMMEDIATE is for errors that can be retried by restarting the
+  //  transaction immediately.
+  IMMEDIATE = 2;
+}
+
+// A NotLeaderError indicates that the current range is not the
+//  leader. If the leader is known, its Replica is set in the error.
+message NotLeaderError {
+  optional .cockroach.proto.Replica leader = 1;
+}
+
+// A RangeNotFoundError indicates that a command was sent to a range
+//  which is not hosted on this store.
+message RangeNotFoundError {
+  optional int64 raft_id = 1;
+}
+
+// A RangeKeyMismatchError indicates that a command was sent to a
+//  range which did not contain the key(s) specified by the command.
+message RangeKeyMismatchError {
+  optional bytes request_start_key = 1;
+  optional bytes request_end_key = 2;
+  optional .cockroach.proto.RangeDescriptor range = 3;
+}
+
+// A ReadWithinUncertaintyIntervalError indicates that a read at timestamp
+//  encountered a versioned value at existing_timestamp within the uncertainty
+//  interval of the reader.
+//  The read should be retried at existing_timestamp+1.
+message ReadWithinUncertaintyIntervalError {
+  optional .cockroach.proto.Timestamp timestamp = 1;
+  optional .cockroach.proto.Timestamp existing_timestamp = 2;
+}
+
+// A TransactionAbortedError indicates that the transaction was
+//  aborted by another concurrent transaction.
+message TransactionAbortedError {
+  optional .cockroach.proto.Transaction txn = 1;
+}
+
+// A TransactionPushError indicates that the transaction could not
+//  continue because it encountered a write intent from another
+//  transaction which it was unable to push.
+message TransactionPushError {
+  // txn can be null in the event the push error happened to a
+  //  non-transactional method.
+  optional .cockroach.proto.Transaction txn = 1;
+  optional .cockroach.proto.Transaction pushee_txn = 2;
+}
+
+// A TransactionRetryError indicates that the transaction must be
+//  retried, usually with an increased transaction timestamp. The
+//  transaction struct to use is returned with the error.
+message TransactionRetryError {
+  optional .cockroach.proto.Transaction txn = 1;
+}
+
+// A TransactionStatusError indicates that the transaction status is
+//  incompatible with the requested operation. This might mean the
+//  transaction has already been committed. It might also be the case
+//  that the request to modify the transaction failed due to a
+//  regression in transaction epoch or timestamp, both of which may
+//  only monotonically increase.
+message TransactionStatusError {
+  optional .cockroach.proto.Transaction txn = 1;
+  optional string msg = 2;
+}
+
+// A WriteIntentError indicates that a write intent belonging to
+//  another transaction was encountered leading to a read/write or
+//  write/write conflict. The Key at which the intent was encountered
+//  is set, as is the Txn record for the intent's transaction.
+//  Resolved is set if the intent was successfully resolved, meaning
+//  the client may retry the operation immediately. If Resolved is
+//  false, the client should back off and retry.
+message WriteIntentError {
+  optional bytes key = 1;
+  optional .cockroach.proto.Transaction txn = 2;
+  optional bool resolved = 3;
+}
+
+// A WriteTooOldError indicates that a write encountered a versioned
+//  value newer than its timestamp, making it impossible to rewrite
+//  history. The write should be retried at existing_timestamp+1.
+message WriteTooOldError {
+  optional .cockroach.proto.Timestamp timestamp = 1;
+  optional .cockroach.proto.Timestamp existing_timestamp = 2;
+}
+
+// An OpRequiresTxnError indicates that a command required to be
+//  carried out in a transactional context but was not.
+//  For example, a Scan which spans ranges requires a transaction.
+//  The operation should be retried inside of a transaction.
+message OpRequiresTxnError {
+}
+
+// A ConditionFailedError indicates that the expected value
+//  of a ConditionalPutRequest was not found, either
+//  because it was missing or was not equal. The error will
+//  contain the actual value found.
+message ConditionFailedError {
+  optional .cockroach.proto.Value actual_value = 1;
+}
+
+// ErrorDetail is a union type containing all available errors.
+message ErrorDetail {
+   oneof value {
+    .cockroach.proto.NotLeaderError not_leader = 1;
+    .cockroach.proto.RangeNotFoundError range_not_found = 2;
+    .cockroach.proto.RangeKeyMismatchError range_key_mismatch = 3;
+    .cockroach.proto.ReadWithinUncertaintyIntervalError read_within_uncertainty_interval = 4;
+    .cockroach.proto.TransactionAbortedError transaction_aborted = 5;
+    .cockroach.proto.TransactionPushError transaction_push = 6;
+    .cockroach.proto.TransactionRetryError transaction_retry = 7;
+    .cockroach.proto.TransactionStatusError transaction_status = 8;
+    .cockroach.proto.WriteIntentError write_intent = 9;
+    .cockroach.proto.WriteTooOldError write_too_old = 10;
+    .cockroach.proto.OpRequiresTxnError op_requires_txn = 11;
+    .cockroach.proto.ConditionFailedError condition_failed = 12;
+  }
+}
+
+// Error is a generic representation including a string message
+//  and information about retryability.
+message Error {
+  // Message is a human-readable error message.
+  optional string message = 1;
+  // If retryable is true, the error condition may be transient and the failed
+  //  operation may be retried (within the same transaction).
+  optional bool retryable = 2;
+  // If transaction_restart is not ABORT, the error condition may be handled by
+  //  restarting the transaction (with or without a backoff).
+  optional .cockroach.proto.TransactionRestart transaction_restart = 4;
+  // If an ErrorDetail is present, it may contain additional structured data
+  //  about the error.
+  optional .cockroach.proto.ErrorDetail detail = 3;
+}
+

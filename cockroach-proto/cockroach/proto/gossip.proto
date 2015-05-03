@@ -1,0 +1,35 @@
+syntax = "proto2";
+
+package cockroach.proto;
+
+option go_package = "proto";
+
+message Addr {
+  optional string network = 1;
+  optional string address = 2;
+}
+
+// GossipRequest is the request struct passed with the Gossip RPC.
+message GossipRequest {
+  // Requesting node's ID.
+  optional int32 node_id = 1;
+  // Address of the requesting client.
+  optional .cockroach.proto.Addr addr = 2;
+  // Local address of client on requesting node (this is a kludge to
+  //  allow gossip to know when client connections are dropped).
+  optional .cockroach.proto.Addr l_addr = 3;
+  // Maximum sequence number of gossip from this peer.
+  optional int64 max_seq = 4;
+  // Reciprocal delta of new info since last gossip.
+  optional bytes delta = 5;
+}
+
+// GossipResponse is returned from the Gossip.Gossip RPC.
+//  Delta will be nil in the event that Alternate is set.
+message GossipResponse {
+  // Requested delta of server's infostore.
+  optional bytes delta = 1;
+  // Non-nil means client should retry with this address.
+  optional .cockroach.proto.Addr alternate = 2;
+}
+
