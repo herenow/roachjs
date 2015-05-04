@@ -582,6 +582,6 @@ Run the following npm script to compile the .proto files to javascript, it will 
 $ npm run build-proto
 ```
 
-## Contributors
+## Maintainers
 
 * [herenow](/herenow)
