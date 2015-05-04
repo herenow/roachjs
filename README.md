@@ -567,7 +567,7 @@ var transaction = function(txn, commit, abort) {
 Cockroachdb's protocol buffer files are mantained at a repository called [cockroachdb/cockroach-proto](http://github.com/cockroachdb/cockroach-proto), this is
 maintained as a `subtree` in this library, in case you need to manually update or change them, follow this steps.
 
-** If you want to sync them with the latest proto files**
+##### If you want to sync them with the latest proto files
 
 You will need to update the folder **cockroach-proto** with the latest content of the [cockroachdb/cockroach-proto](http://github.com/cockroachdb/cockroach-proto) repository, you could do this with:
 ```bash
@@ -575,7 +575,7 @@ $ git subtree pull -P cockroach-proto git@github.com:cockroachdb/cockroach-proto
 ```
 * Notice: I'm not sure if this is a good pattern, just be sure to update the folder contents.
 
-** Recompile the .proto files **
+##### Recompile the .proto files
 
 Run the following npm script to compile the .proto files to javascript, it will automatically place the files in the lib folder.
 ```bash
