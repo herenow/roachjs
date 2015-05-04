@@ -7,7 +7,9 @@
 	"node": ">=0.8"
   },
   "scripts": {
-    "test": "node ./node_modules/.bin/nodeunit lib/*_test.js"
+    "test": "node ./node_modules/.bin/nodeunit lib/*_test.js",
+    "build-proto": "npm run-script build-proto-api && echo \"Built proto files to ./lib/proto\"",
+    "build-proto-api": "./node_modules/protobufjs/bin/proto2js cockroach-proto/cockroach/proto/api.proto -commonjs=\"cockroach.proto\" -path=cockroach-proto/ > ./lib/proto/api.js"
   },
   "repository": {
     "type": "git",
