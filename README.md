@@ -158,13 +158,13 @@ client.runTransaction(opts, transaction, function(err, res) {
 
 Returns a new roachjs client with [options](#client-options).
 
-#### Parameters
+##### Parameters
 
 name | type | description
 --- | --- | ----
 `opts` | object | [see](#client-options)
 
-#### <a name="client-options"></a> Client options
+##### <a name="client-options"></a> Client options
 
 opt | description | default
 --- | --- | ---
@@ -177,7 +177,7 @@ opt | description | default
 `http` | http module to use | `require('http')`
 `clock` | clock module to use | `new Date()`
 
-#### <a name="client-methods"></a> Methods
+##### <a name="client-methods"></a> Methods
 
 | method |
 | --- |
@@ -196,14 +196,14 @@ opt | description | default
 
 Gets a single entry from the datastore, specified by `key`.
 
-#### Parameters
+##### Parameters
 
 name | type | description
 --- | --- | ----
 `key` | string |  
 `callback` | callback | `function(err, value, res) {}`
 
-#### Callback
+##### Callback
 
 name | type | description
 --- | --- | ----
@@ -211,7 +211,7 @@ name | type | description
 `value` | Buffer |  
 `res` | object | [see](#res-struct)
 
-#### Example
+##### Example
 ```javascript
 client.get("key", function(err, value, res) {})
 ```
@@ -221,7 +221,7 @@ client.get("key", function(err, value, res) {})
 Puts a value in the datastore in the specified `key`. Ideally you
 should send in buffers, but you can pass a string, preferably an utf-8 encoded string.
 
-#### Parameters
+##### Parameters
 
 name | type | description
 --- | --- | ----
@@ -229,14 +229,14 @@ name | type | description
 `value` | Buffer, string |
 `callback` | callback | `function(err, res) {}`
 
-#### Callback
+##### Callback
 
 name | type | description
 --- | --- | ----
 `err` | Error() |
 `res` | object | [see](#res-struct)
 
-#### Example
+##### Example
 ```javascript
 client.put("key", "value", function(err, res) {})
 ```
@@ -246,7 +246,7 @@ client.put("key", "value", function(err, res) {})
 ConditionalPut sets the `value` for a `key` if the existing value matches the `ifValue`.
 Specifying an empty or null `ifValue` means the entry must not yet exist.
 
-#### Parameters
+##### Parameters
 
 name | type | description
 --- | --- | ----
@@ -255,7 +255,7 @@ name | type | description
 `ifValue` | Buffer, string, null | use `null` to put if entry doens't exists  
 `callback` | callback | `function(err, res) {}`
 
-#### Callback
+##### Callback
 
 name | type | description
 --- | --- | ----
@@ -263,7 +263,7 @@ name | type | description
 `actualValue` | Buffer | If conditional put fails this value is set
 `res` | object | [see](#res-struct)
 
-#### Example
+##### Example
 ```javascript
 client.conditionalPut("status", "running", "stopped", function(err, actualValue, res) {})
 client.conditionalPut("status", "new", null, function(err, actualValue, res) {})
@@ -273,14 +273,14 @@ client.conditionalPut("status", "new", null, function(err, actualValue, res) {})
 
 Contains determines if a `key` exists in the datastore.
 
-#### Parameters
+##### Parameters
 
 name | type | description
 --- | --- | ----
 `key` | string |
 `callback` | callback | `function(err, exists, res) {}`
 
-#### Callback
+##### Callback
 
 name | type | description
 --- | --- | ----
@@ -288,7 +288,7 @@ name | type | description
 `exists` | boolean |
 `res` | object | [see](#res-struct)
 
-#### Example
+##### Example
 ```javascript
 client.contains("john", function(err, exists, res) {
     if(exists === true) {
@@ -303,7 +303,7 @@ Increment increments the value at the specified `key` by some `increment` value.
 Once called for a `key`, Put & Get will return errors; only Increment will continue to be a valid command.
 The value must be deleted before it can be reset using Put.
 
-#### Parameters
+##### Parameters
 
 name | type | description
 --- | --- | ----
@@ -311,7 +311,7 @@ name | type | description
 `increment` | integer |
 `callback` | callback | `function(err, newValue, res) {}`
 
-#### Callback
+##### Callback
 
 name | type | description
 --- | --- | ----
@@ -319,7 +319,7 @@ name | type | description
 `newValue` | integer |  the new value for this counter, after the increment operation
 `res` | object | [see](#res-struct)
 
-#### Example
+##### Example
 ```javascript
 client.increment("counter", 5, function(err, newValue, res) {
     console.log('counter current value is', newValue)
@@ -330,7 +330,7 @@ client.increment("counter", 5, function(err, newValue, res) {
 
 Scan the datastore for keys in the range of the `start_key` and `end_key`, limiting the result by `limit`.
 
-#### Parameters
+##### Parameters
 
 name | type | description
 --- | --- | ----
@@ -340,7 +340,7 @@ name | type | description
 `limit` | integer |
 `callback` | callback | `function(err, rows, res) {}`
 
-#### Callback
+##### Callback
 
 name | type | description
 --- | --- | ----
@@ -348,7 +348,7 @@ name | type | description
 `rows` | array |
 `res` | object | [see](#res-struct)
 
-#### Example
+##### Example
 ```javascript
 client.scan("a", "Z", 100, function(err, rows, res) {
     for(row as rows) {
@@ -361,21 +361,21 @@ client.scan("a", "Z", 100, function(err, rows, res) {
 
 Delete an entry from the datastore specified by `key`.
 
-#### Parameters
+##### Parameters
 
 name | type | description
 --- | --- | ----
 `key` | string |
 `callback` | callback | `function(err, res) {}`
 
-#### Callback
+##### Callback
 
 name | type | description
 --- | --- | ----
 `err` | Error() |
 `res` | object | [see](#res-struct)
 
-#### Example
+##### Example
 ```javascript
 client.delete("key", function(err, res) {})
 ```
@@ -384,7 +384,7 @@ client.delete("key", function(err, res) {})
 
 Delete all keys found in a range, from `start_key` to `end_key`, limited by `limit`.
 
-#### Parameters
+##### Parameters
 
 name | type | description
 --- | --- | ----
@@ -394,7 +394,7 @@ name | type | description
 `limit` | integer |
 `callback` | callback | `function(err, deleted, res) {}`
 
-#### Callback
+##### Callback
 
 name | type | description
 --- | --- | ----
@@ -402,7 +402,7 @@ name | type | description
 `deleted` | integer | number of entries deleted
 `res` | object | [see](#res-struct)
 
-#### Example
+##### Example
 ```javascript
 client.deleteRange("a", "Z", 100, function(err, deleted, res) {
     console.log('deleted %d entries', deleted)
@@ -415,14 +415,14 @@ Return you a new *prepared* client. It has all the [methods](#client-methods) fr
 Read [Advanced client usage II](#example-advanced-2) to understand how to use this client.
 You should always use this client when sending in multiple queries, this will batch them together in a single request.
 
-#### <a name="prep-client-methods"></a> Methods
+##### <a name="prep-client-methods"></a> Methods
 
 | method | description |
 | --- | --- |
 | [flush](#prep-client-flush) | Flush the prepared queries |
 
 
-#### Example
+##### Example
 ```javascript
 var c = client.prepare()
 
@@ -445,21 +445,21 @@ c.flush()
 
 Flush the prepared queries buffer, and send it as a batch request.
 
-#### Parameters
+##### Parameters
 
 name | type | description
 --- | --- | ----
 `callback` | callback | optional
 
 
-#### Callback
+##### Callback
 
 name | type | description
 --- | --- | ----
 `err` | Error() | batch request failed
 `res` | object | [see](#res-struct)
 
-#### Example
+##### Example
 ```javascript
 client.flush(function(err, res) {
     if(err) {
@@ -471,7 +471,7 @@ client.flush(function(err, res) {
 })
 ```
 
-#### Returns
+##### Returns
 
 Returns an response object.
 
@@ -490,7 +490,7 @@ recoverable internal errors, and is automatically committed otherwise.
 retryable should have no side effects which could cause problems in the event
 it must be run more than once. The `opts` contains transaction settings.
 
-#### Parameters
+##### Parameters
 
 name | type | description
 --- | --- | ----
@@ -498,7 +498,7 @@ name | type | description
 `transacation` | [retryable function](#retryable-function) | `function(txn, commit, abort) {}`
 `callback` | callback | `function(err, res) {}`
 
-#### <a name="transaction-options"></a> Transaction options
+##### <a name="transaction-options"></a> Transaction options
 
 opt | description | default
 --- | --- | ---
@@ -506,7 +506,7 @@ opt | description | default
 `isolation` |  | `0`
 
 
-#### Callback
+##### Callback
 
 name | type | description
 --- | --- | ----
@@ -520,7 +520,7 @@ name | type | description
 The `res` argument contains the full database response, each database command can
 contain a different set of properties. This document will try to state some of the possible properties.
 
-#### Properties
+##### Properties
 
 property | type | description  
 --- | --- | ---
@@ -534,7 +534,7 @@ executed more than once. This function should never forget to
 call `commit` or `abort`. Throwing an error inside this
 function also aborts the transaction.
 
-#### Arguments
+##### Arguments
 name | type | description
 --- | --- | ----
 `txn` | [Prepared client](#client-prepare) | this client is the same as `client.prepare()`, you can flush yourself if you don't wan't to commit yet.
@@ -544,7 +544,7 @@ name | type | description
 * `abort()` accepts an optional `Error`. This error will be passed to the
 [.runTransaction](#client-runTransaction) callback.
 
-#### Example
+##### Example
 
 ```javascript
 var transaction = function(txn, commit, abort) {
