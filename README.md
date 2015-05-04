@@ -43,6 +43,7 @@ $ npm install roachjs
 * [Extra](#extra)
     * [Response properties](#res-structure)
     * [Transaction function](#retryable-function)
+    * [Compiling .proto files](#compile-proto-files)
 
 ## <a name="examples"></a>Examples
 
@@ -559,6 +560,26 @@ var transaction = function(txn, commit, abort) {
     // the prepared transaction.
     commit()
 }
+```
+
+### <a name="compile-proto-files"></a> Compiling .proto files
+
+Cockroachdb's protocol buffer files are mantained at a repository called [cockroachdb/cockroach-proto](http://github.com/cockroachdb/cockroach-proto), this is
+maintained as a `subtree` in this library, in case you need to manually update or change them, follow this steps.
+
+** If you want to sync them with the latest proto files**
+
+You will need to update the folder **cockroach-proto** with the latest content of the [cockroachdb/cockroach-proto](http://github.com/cockroachdb/cockroach-proto) repository, you could do this with:
+```bash
+$ git subtree pull -P cockroach-proto git@github.com:cockroachdb/cockroach-proto.git master
+```
+* Notice: I'm not sure if this is a good pattern, just be sure to update the folder contents.
+
+** Recompile the .proto files **
+
+Run the following npm script to compile the .proto files to javascript, it will automatically place the files in the lib folder.
+```bash
+$ npm run build-proto
 ```
 
 ## Contributors
