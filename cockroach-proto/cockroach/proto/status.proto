@@ -1,6 +1,7 @@
 syntax = "proto2";
 
 import "cockroach/proto/data.proto";
+import "cockroach/proto/config.proto";
 package cockroach.proto;
 
 option go_package = "proto";
@@ -8,14 +9,22 @@ option go_package = "proto";
 // StoreStatus contains the stats needed to calculate the current status of a
 //  store.
 message StoreStatus {
-  optional int32 store_id = 1;
+  optional .cockroach.proto.StoreDescriptor desc = 1;
   optional int32 node_id = 2;
   optional int32 range_count = 3;
-  // The last time this store was started.
   optional int64 started_at = 4;
-  // The last time this status was updated.
   optional int64 updated_at = 5;
-  // All current aggregated stats are contained in MVCCStats.
+  optional .cockroach.proto.MVCCStats stats = 6;
+}
+
+// NodeStatus contains the stats needed to calculate the current status of a 
+//  node.
+message NodeStatus {
+  optional .cockroach.proto.NodeDescriptor desc = 1;
+  repeated int32 store_ids = 2;
+  optional int32 range_count = 3;
+  optional int64 started_at = 4;
+  optional int64 updated_at = 5;
   optional .cockroach.proto.MVCCStats stats = 6;
 }
 
