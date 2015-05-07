@@ -1,13 +1,9 @@
 syntax = "proto2";
 
+import "cockroach/proto/config.proto";
 package cockroach.proto;
 
 option go_package = "proto";
-
-message Addr {
-  optional string network = 1;
-  optional string address = 2;
-}
 
 // GossipRequest is the request struct passed with the Gossip RPC.
 message GossipRequest {
