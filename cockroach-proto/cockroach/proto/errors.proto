@@ -23,7 +23,8 @@ enum TransactionRestart {
 // A NotLeaderError indicates that the current range is not the
 //  leader. If the leader is known, its Replica is set in the error.
 message NotLeaderError {
-  optional .cockroach.proto.Replica leader = 1;
+  optional .cockroach.proto.Replica replica = 1;
+  optional .cockroach.proto.Replica leader = 2;
 }
 
 // A RangeNotFoundError indicates that a command was sent to a range
@@ -83,17 +84,21 @@ message TransactionStatusError {
   optional string msg = 2;
 }
 
-// A WriteIntentError indicates that a write intent belonging to
-//  another transaction was encountered leading to a read/write or
-//  write/write conflict. The Key at which the intent was encountered
-//  is set, as is the Txn record for the intent's transaction.
-//  Resolved is set if the intent was successfully resolved, meaning
-//  the client may retry the operation immediately. If Resolved is
-//  false, the client should back off and retry.
+// A WriteIntentError indicates that one or more write intent
+//  belonging to another transaction were encountered leading to a
+//  read/write or write/write conflict. The keys at which the intent
+//  was encountered are set, as are the txn records for the intents'
+//  transactions. Resolved is set if the intent was successfully
+//  resolved, meaning the client may retry the operation
+//  immediately. If Resolved is false, the client should back off and
+//  retry.
 message WriteIntentError {
-  optional bytes key = 1;
-  optional .cockroach.proto.Transaction txn = 2;
-  optional bool resolved = 3;
+  message Intent {
+    optional bytes key = 1;
+    optional .cockroach.proto.Transaction txn = 2;
+  }
+  repeated .cockroach.proto.WriteIntentError.Intent intents = 1;
+  optional bool resolved = 2;
 }
 
 // A WriteTooOldError indicates that a write encountered a versioned

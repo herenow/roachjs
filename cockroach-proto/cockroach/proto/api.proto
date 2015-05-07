@@ -256,6 +256,7 @@ message EndTransactionResponse {
 }
 
 // A RequestUnion contains exactly one of the optional requests.
+//  Values added here must be added to InternalRequestUnion as well.
 message RequestUnion {
    oneof value {
     .cockroach.proto.ContainsRequest contains = 1;
@@ -271,6 +272,7 @@ message RequestUnion {
 }
 
 // A ResponseUnion contains exactly one of the optional responses.
+//  Values added here must be added to InternalResponseUnion as well.
 message ResponseUnion {
    oneof value {
     .cockroach.proto.ContainsResponse contains = 1;

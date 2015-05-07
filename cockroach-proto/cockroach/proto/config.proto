@@ -94,3 +94,32 @@ message RangeTreeNode {
   optional bytes right_key = 5;
 }
 
+// Addr holds any network address. It is structurally similar to net.Addr 
+//  however String is replaced with Address so the proto will compile.
+message Addr {
+  optional string network = 1;
+  optional string address = 2;
+}
+
+// StoreCapacity contains capacity information for a storage device.
+message StoreCapacity {
+  optional int64 Capacity = 1;
+  optional int64 Available = 2;
+}
+
+// NodeDescriptor holds details on node physical/network topology.
+message NodeDescriptor {
+  optional int32 node_id = 1;
+  optional .cockroach.proto.Addr address = 2;
+  optional .cockroach.proto.Attributes attrs = 3;
+}
+
+// StoreDescriptor holds store information including store attributes, node 
+//  descriptor and store capacity.
+message StoreDescriptor {
+  optional int32 store_id = 1;
+  optional .cockroach.proto.Attributes attrs = 2;
+  optional .cockroach.proto.NodeDescriptor node = 3;
+  optional .cockroach.proto.StoreCapacity capacity = 4;
+}
+
