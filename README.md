@@ -571,7 +571,7 @@ maintained as a `subtree` in this library, in case you need to manually update o
 
 You will need to update the folder **cockroach-proto** with the latest content of the [cockroachdb/cockroach-proto](http://github.com/cockroachdb/cockroach-proto) repository, you could do this with:
 ```bash
-$ git subtree pull -P cockroach-proto git@github.com:cockroachdb/cockroach-proto.git master
+$ git subtree pull -P cockroach-proto git@github.com:cockroachdb/cockroach-proto.git master --squash
 ```
 * Notice: I'm not sure if this is a good pattern, just be sure to update the folder contents.
 
