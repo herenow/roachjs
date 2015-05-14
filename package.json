@@ -35,6 +35,6 @@
     "protobufjs": "~3.8.2"
   },
   "optionalDependencies": {
-    "microtime": "~1.1.0"
+    "microtime": "~1.4.1"
   }
 }
