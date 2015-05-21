@@ -175,6 +175,7 @@ opt | description | default
 `user` | user to run the requests with | `root`
 `retry` | retry requests when cockroach responds with a busy signal | `true`
 `http` | http module to use | `require('http')`
+`sockets` | maximum number of sockets to open on the http connection pool ([read more](https://nodejs.org/api/http.html#http_class_http_agent)) | `5`
 `clock` | clock module to use | `new Date()`
 
 ##### <a name="client-methods"></a> Methods
