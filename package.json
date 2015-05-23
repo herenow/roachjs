@@ -1,6 +1,6 @@
 {
   "name": "roachjs",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "description": "Node.js driver for cockroachdb.",
   "main": "index.js",
   "engines": {
