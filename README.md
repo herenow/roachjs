@@ -52,7 +52,7 @@ $ npm install roachjs
 var Roach = require('roachjs')
 
 var client = new Roach({
-    uri: 'http://127.0.0.1:8080'
+    uri: 'https://localhost:8080'
 })
 
 module.exports = client
@@ -168,15 +168,15 @@ name | type | description
 
 opt | description | default
 --- | --- | ---
-`uri` | uri to the cockroach http endpoint | `http://127.0.0.1:8080/`
-`host` | host or ip to the cockroach http endpoint | `127.0.0.1`
+`uri` | uri to the cockroach http endpoint | `https://localhost:8080/`
+`host` | host or ip to the cockroach http endpoint | `localhost`
 `port` | port to the cockroach http endpoint | `8080`
-`ssl` | connect throught https | `false`
+`ssl` | connect throught https | `true`
 `user` | user to run the requests with | `root`
 `retry` | retry requests when cockroach responds with a busy signal | `true`
-`http` | http module to use | `require('http')`
-`sockets` | maximum number of sockets to open on the http connection pool ([read more](https://nodejs.org/api/http.html#http_class_http_agent)) | `5`
-`clock` | clock module to use | `new Date()`
+`http` | http module to use | `require('https')`
+`agent` | http agent to use on the requests ([read more](https://nodejs.org/api/http.html#http_class_http_agent)) | `new http.Agent()`
+`clock` | clock module to use | internal clock module
 
 ##### <a name="client-methods"></a> Methods
 
@@ -201,15 +201,15 @@ Gets a single entry from the datastore, specified by `key`.
 
 name | type | description
 --- | --- | ----
-`key` | string |  
+`key` | string |
 `callback` | callback | `function(err, value, res) {}`
 
 ##### Callback
 
 name | type | description
 --- | --- | ----
-`err` | Error() |  
-`value` | Buffer |  
+`err` | Error() |
+`value` | Buffer |
 `res` | object | [see](#res-struct)
 
 ##### Example
@@ -253,7 +253,7 @@ name | type | description
 --- | --- | ----
 `key` | string |
 `value` | Buffer, string |
-`ifValue` | Buffer, string, null | use `null` to put if entry doens't exists  
+`ifValue` | Buffer, string, null | use `null` to put if entry doens't exists
 `callback` | callback | `function(err, res) {}`
 
 ##### Callback
@@ -523,7 +523,7 @@ contain a different set of properties. This document will try to state some of t
 
 ##### Properties
 
-property | type | description  
+property | type | description
 --- | --- | ---
 `timestamp` | integer | timestamp of the returned entry
 `wall_time` | integer | timestamp of when the read or write operation was performed
