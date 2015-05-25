@@ -176,7 +176,7 @@ opt | description | default
 `retry` | retry requests when cockroach responds with a busy signal | `true`
 `http` | http module to use | `require('https')`
 `agent` | http agent to use on the requests ([read more](https://nodejs.org/api/http.html#http_class_http_agent)) | `new http.Agent()`
-`clock` | clock module to use | internal clock module
+`clock` | clock module to use ([read more](#custom-clock-module))| internal clock module
 
 ##### <a name="client-methods"></a> Methods
 
@@ -581,6 +581,25 @@ $ git subtree pull -P cockroach-proto git@github.com:cockroachdb/cockroach-proto
 Run the following npm script to compile the .proto files to javascript, it will automatically place the files in the lib folder.
 ```bash
 $ npm run build-proto
+```
+
+### <a name="custom-clock-module"></a> Custom clock module
+
+You may wan't to use a custom clock module in some cases, you can pass it through the `clock` option, when instantiating a `new Client`.
+Your clock module should have a `now` method, and this method should return the current timestamp in **nanoseconds**, here is an example:
+
+```javascript
+var clockModule = module.exports = {
+    now: function TimestampNanoseconds() {
+        // Should return the current timestamp in nanoseconds
+        return ...;
+    }
+}
+
+// Then just pass in the module through the clock option.
+var client = new Client({
+    clock: clockModule
+})
 ```
 
 ## Maintainers
