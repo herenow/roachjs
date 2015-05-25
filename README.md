@@ -44,6 +44,7 @@ $ npm install roachjs
     * [Response properties](#res-structure)
     * [Transaction function](#retryable-function)
     * [Compiling .proto files](#compile-proto-files)
+    * [Custom clock module](#custom-clock-module)
 
 ## <a name="examples"></a>Examples
 
@@ -596,7 +597,6 @@ var clockModule = module.exports = {
     }
 }
 
-// Then just pass in the module through the clock option.
 var client = new Client({
     clock: clockModule
 })
