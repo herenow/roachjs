@@ -1,6 +1,6 @@
 # RoachJS - CockroachDB Driver
 
-[![NPM](https://nodei.co/npm/roachjs.png?downloads=true&stars=true)](https://nodei.co/npm/roachjs/)
+[![NPM](https://nodei.co/npm/roachjs.png?downloads=true&stars=true)](https://www.npmjs.com/package/roachjs)
 
 [![Build Status](https://travis-ci.org/herenow/roachjs.svg?branch=master)](https://travis-ci.org/herenow/roachjs)
 
