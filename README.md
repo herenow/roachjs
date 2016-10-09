@@ -1,5 +1,8 @@
 # RoachJS - CockroachDB Driver
 
+# Note: RoachJS will only work against old versions of CockroachDB that expose the key-value API.
+***To interact with newer versions you can use a library that works with Postgres. For more, please see the [CockroachDB docs](docs.cockroachlabs.com).***
+
 [![NPM](https://nodei.co/npm/roachjs.png?downloads=true&stars=true)](https://www.npmjs.com/package/roachjs)
 
 [![Build Status](https://travis-ci.org/herenow/roachjs.svg?branch=master)](https://travis-ci.org/herenow/roachjs)
